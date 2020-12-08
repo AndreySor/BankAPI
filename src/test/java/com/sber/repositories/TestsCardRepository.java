@@ -140,7 +140,6 @@ public class TestsCardRepository {
 
     final Card EXPECTED_SAVE =
                     Card.builder()
-                            .cardId(6l)
                             .cardNumber("9934 2323 3896 6623")
                             .account(Account.builder()
                                     .accountId(5l)
@@ -196,6 +195,27 @@ public class TestsCardRepository {
                             .build())
                     .owner(User.builder()
                             .userId(8l)
+                            .firstName("Zaur")
+                            .lastName("Ivanov")
+                            .build())
+                    .build();
+
+    final Card EXPECTED_SAVE_NOT_CARD_NUMBER =
+            Card.builder()
+                    .cardId(6l)
+                    .cardNumber(null)
+                    .account(Account.builder()
+                            .accountId(5L)
+                            .accountNumber("9934 9264 3456 4423")
+                            .balance(new BigDecimal("12900.40"))
+                            .owner(User.builder()
+                                    .userId(4l)
+                                    .firstName("Zaur")
+                                    .lastName("Ivanov")
+                                    .build())
+                            .build())
+                    .owner(User.builder()
+                            .userId(4l)
                             .firstName("Zaur")
                             .lastName("Ivanov")
                             .build())
@@ -406,7 +426,7 @@ public class TestsCardRepository {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setUser("sa");
         ds.setPassword("");
-        ds.setUrl("jdbc:h2:~/test;AUTO_SERVER=TRUE;Mode=Oracle;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/main/resources/data.sql'");
+        ds.setUrl("jdbc:h2:mem:test;INIT=runscript from 'src/test/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
         dataSource = ds;
     }
 
@@ -417,6 +437,19 @@ public class TestsCardRepository {
             Card check = cardRepository.get(3l).get();
             assertEquals(check, EXPECTED_GET_BY_ID);
         } catch (SQLException throwables) {
+            fail();
+            throwables.printStackTrace();
+        }
+    }
+
+    @Test
+    void isGetEmpty() {
+        try {
+            CardRepositoryImp cardRepository = new CardRepositoryImp(dataSource);
+            Optional check = cardRepository.get(9l);
+            assertEquals(check, Optional.empty());
+        } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -428,6 +461,7 @@ public class TestsCardRepository {
             List<Card> check = cardRepository.getAll();
             assertEquals(check, EXPECTED_FIND_ALL);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -440,6 +474,7 @@ public class TestsCardRepository {
             Card check = cardRepository.get(6l).get();
             assertEquals(check, EXPECTED_SAVE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -455,9 +490,9 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
-
     }
 
     @Test
@@ -471,6 +506,23 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
+            throwables.printStackTrace();
+        }
+    }
+
+    @Test
+    void isSaveNotCardNumber() {
+        try {
+            CardRepositoryImp cardRepository = new CardRepositoryImp(dataSource);
+            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
+                cardRepository.save(EXPECTED_SAVE_NOT_CARD_NUMBER);
+            });
+            String expectedMessage = "Значение cardNumber =  null";
+            String actualMessage = exception.getMessage();
+            assertTrue(actualMessage.contains(expectedMessage));
+        } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
 
@@ -487,6 +539,7 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -502,6 +555,7 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -514,6 +568,7 @@ public class TestsCardRepository {
             Card check = cardRepository.get(3l).get();
             assertEquals(check, EXPECTED_UPDATE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -529,6 +584,7 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -544,6 +600,7 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -560,6 +617,7 @@ public class TestsCardRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -574,6 +632,7 @@ public class TestsCardRepository {
             check = cardRepository.getAll();
             assertEquals(check, EXPECTED_DELETE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -587,6 +646,7 @@ public class TestsCardRepository {
             check = cardRepository.getByNumber("7356 9264 7634 2534").get();
             assertEquals(check, EXPECTED_GET_BY_ID);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -599,12 +659,13 @@ public class TestsCardRepository {
             check = cardRepository.getByNumber("7356 9264 7634 0000");
             assertEquals(check, Optional.empty());
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
 
     @Test
-    void isConnection() {
+    void isNotConnection() {
         JdbcDataSource ds = new JdbcDataSource();
         assertThrows(SQLException.class, () -> {
             new CardRepositoryImp(ds);

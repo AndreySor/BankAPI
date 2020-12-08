@@ -118,6 +118,18 @@ public class TestAccountRepository {
                                     .build())
                             .build();
 
+    final Account EXPECTED_SAVE_NOT_ACCOUNT_NUMBER =
+            Account.builder()
+                    .accountId(5l)
+                    .accountNumber(null)
+                    .balance(new BigDecimal("12900.40"))
+                    .owner(User.builder()
+                            .userId(3L)
+                            .firstName("Zaur")
+                            .lastName("Ivanov")
+                            .build())
+                    .build();
+
     final Account EXPECTED_UPDATE = Account.builder()
                     .accountId(4l)
                     .accountNumber("2353 6334 9865 8376")
@@ -198,7 +210,7 @@ public class TestAccountRepository {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setUser("sa");
         ds.setPassword("");
-        ds.setUrl("jdbc:h2:~/test;AUTO_SERVER=TRUE;Mode=Oracle;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/main/resources/data.sql'");
+        ds.setUrl("jdbc:h2:mem:test;INIT=runscript from 'src/test/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
         dataSource = ds;
     }
 
@@ -209,6 +221,7 @@ public class TestAccountRepository {
             Account check = accountRepository.get(3l).get();
             assertEquals(check, EXPECTED_GET_BY_ID);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -220,6 +233,7 @@ public class TestAccountRepository {
             Optional check = accountRepository.get(9l);
             assertEquals(check, Optional.empty());
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -231,6 +245,7 @@ public class TestAccountRepository {
             List<Account> check = accountRepository.getAll();
             assertEquals(check, EXPECTED_FIND_ALL);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -243,6 +258,7 @@ public class TestAccountRepository {
             Account check = accountRepository.get(6l).get();
             assertEquals(check, EXPECTED_SAVE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -258,6 +274,23 @@ public class TestAccountRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
+            throwables.printStackTrace();
+        }
+    }
+
+    @Test
+    void isSaveNotAccountNumber() {
+        try {
+            AccountRepositoryImp accountRepository = new AccountRepositoryImp(dataSource);
+            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
+                accountRepository.save(EXPECTED_SAVE_NOT_ACCOUNT_NUMBER);
+            });
+            String expectedMessage = "Значение accountNumber =  null";
+            String actualMessage = exception.getMessage();
+            assertTrue(actualMessage.contains(expectedMessage));
+        } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -273,6 +306,7 @@ public class TestAccountRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -285,6 +319,7 @@ public class TestAccountRepository {
             Account check = accountRepository.get(4l).get();
             assertEquals(check, EXPECTED_UPDATE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -300,6 +335,7 @@ public class TestAccountRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -315,6 +351,7 @@ public class TestAccountRepository {
             String actualMessage = exception.getMessage();
             assertTrue(actualMessage.contains(expectedMessage));
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -327,6 +364,7 @@ public class TestAccountRepository {
             List<Account> check = accountRepository.getAll();
             assertEquals(check, EXPECTED_DELETE);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -339,6 +377,7 @@ public class TestAccountRepository {
             check = accountRepository.getByNumber("7356 9264 7634 2534").get();
             assertEquals(check, EXPECTED_GET_BY_ID);
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
@@ -350,12 +389,13 @@ public class TestAccountRepository {
             Optional check = accountRepository.getByNumber("7356 9264 7634 0000");
             assertEquals(check, Optional.empty());
         } catch (SQLException throwables) {
+            fail();
             throwables.printStackTrace();
         }
     }
 
     @Test
-    void isConnection() {
+    void isNotConnection() {
         JdbcDataSource ds = new JdbcDataSource();
         assertThrows(SQLException.class, () -> {
             new AccountRepositoryImp(ds);

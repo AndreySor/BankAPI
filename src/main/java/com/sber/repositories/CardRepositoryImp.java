@@ -15,11 +15,7 @@ public class CardRepositoryImp implements CardRepository<Card>{
     private Connection connection;
 
     public CardRepositoryImp(DataSource dataSource) throws SQLException{
-        try {
-            this.connection = dataSource.getConnection();
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
+        this.connection = dataSource.getConnection();
     }
 
     private final String SQL_SELECT_GET_BY_ID = "SELECT * FROM sber_cards \n" +
@@ -29,44 +25,37 @@ public class CardRepositoryImp implements CardRepository<Card>{
 
     @Override
     public Optional<Card> get(Long id) throws SQLException {
-        PreparedStatement statement = null;
+        PreparedStatement statement;
 
-        try {
-            statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID);
-            statement.setLong(1, id);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                Long cardId = resultSet.getLong("card_id");
-                String cardNumber = resultSet.getString("card_number");
-                Long accountId = resultSet.getLong("account_id");
-                String accountNumber = resultSet.getString("account_number");
-                BigDecimal balance = resultSet.getBigDecimal("balance");
-                Long userId = resultSet.getLong("user_id");
-                String firstName = resultSet.getString("first_name");
-                String lastName = resultSet.getString("last_name");
-                User user = User.builder()
-                        .userId(userId)
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .build();
-
-                return Optional.of(Card.builder()
-                                    .cardId(cardId)
-                                    .cardNumber(cardNumber)
-                                    .account(Account.builder()
-                                            .accountId(accountId)
-                                            .accountNumber(accountNumber)
-                                            .balance(balance)
-                                            .owner(user)
-                                            .build())
-                                    .owner(user)
-                                    .build());
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID);
+        statement.setLong(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            Long cardId = resultSet.getLong("card_id");
+            String cardNumber = resultSet.getString("card_number");
+            Long accountId = resultSet.getLong("account_id");
+            String accountNumber = resultSet.getString("account_number");
+            BigDecimal balance = resultSet.getBigDecimal("balance");
+            Long userId = resultSet.getLong("user_id");
+            String firstName = resultSet.getString("first_name");
+            String lastName = resultSet.getString("last_name");
+            User user = User.builder()
+                    .userId(userId)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .build();
+            return Optional.of(Card.builder()
+                    .cardId(cardId)
+                    .cardNumber(cardNumber)
+                    .account(Account.builder()
+                            .accountId(accountId)
+                            .accountNumber(accountNumber)
+                            .balance(balance)
+                            .owner(user)
+                            .build())
+                    .owner(user)
+                    .build());
         }
-
         return Optional.empty();
     }
 
@@ -79,39 +68,33 @@ public class CardRepositoryImp implements CardRepository<Card>{
         List<Card> cards = new ArrayList<>();
         PreparedStatement statement = null;
 
-        try {
-            statement = connection.prepareStatement(SQL_SELECT_GET_ALL);
-            ResultSet resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                Long cardId = resultSet.getLong("card_id");
-                String cardNumber = resultSet.getString("card_number");
-                Long accountId = resultSet.getLong("account_id");
-                String accountNumber = resultSet.getString("account_number");
-                BigDecimal balance = resultSet.getBigDecimal("balance");
-                Long userId = resultSet.getLong("user_id");
-                String firstName = resultSet.getString("first_name");
-                String lastName = resultSet.getString("last_name");
-                User user = User.builder()
-                        .userId(userId)
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .build();
-
-                cards.add(Card.builder()
-                        .cardId(cardId)
-                        .cardNumber(cardNumber)
-                        .account(Account.builder()
-                                .accountId(accountId)
-                                .accountNumber(accountNumber)
-                                .balance(balance)
-                                .owner(user)
-                                .build())
-                        .owner(user)
-                        .build());
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        statement = connection.prepareStatement(SQL_SELECT_GET_ALL);
+        ResultSet resultSet = statement.executeQuery();
+        while (resultSet.next()) {
+            Long cardId = resultSet.getLong("card_id");
+            String cardNumber = resultSet.getString("card_number");
+            Long accountId = resultSet.getLong("account_id");
+            String accountNumber = resultSet.getString("account_number");
+            BigDecimal balance = resultSet.getBigDecimal("balance");
+            Long userId = resultSet.getLong("user_id");
+            String firstName = resultSet.getString("first_name");
+            String lastName = resultSet.getString("last_name");
+            User user = User.builder()
+                    .userId(userId)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .build();
+            cards.add(Card.builder()
+                    .cardId(cardId)
+                    .cardNumber(cardNumber)
+                    .account(Account.builder()
+                            .accountId(accountId)
+                            .accountNumber(accountNumber)
+                            .balance(balance)
+                            .owner(user)
+                            .build())
+                    .owner(user)
+                    .build());
         }
         return cards;
     }
@@ -121,37 +104,35 @@ public class CardRepositoryImp implements CardRepository<Card>{
 
     @Override
     public void save(Card entity) throws SQLException {
-        PreparedStatement statement = null;
+        PreparedStatement statement;
 
-        if (entity.getOwner().getUserId() == null) {
+        if (entity.getOwner().getUserId() == null || entity.getOwner().getUserId() == 0L) {
             throw new NotSavedSubEntityException("Значение userId = ", null);
-        } else if (entity.getAccount().getAccountId() == null) {
+        } else if (entity.getAccount().getAccountId() == null || entity.getAccount().getAccountId() == 0L) {
             throw new NotSavedSubEntityException("Значение accountId = ", null);
+        } else if (entity.getCardNumber() == null || entity.getCardNumber().isEmpty()) {
+            throw new NotSavedSubEntityException("Значение cardNumber = ", null);
         }
-        try {
-            statement = connection.prepareStatement("SELECT * FROM sber_users WHERE user_id = ?");
-            statement.setLong(1, entity.getOwner().getUserId());
-            ResultSet resultSet = statement.executeQuery();
-            if (!resultSet.next()) {
-                throw new NotSavedSubEntityException("В таблице sber_users не существует записи с id = ", entity.getOwner().getUserId());
-            }
-            statement = connection.prepareStatement("SELECT * FROM sber_accounts WHERE account_id = ?");
-            statement.setLong(1, entity.getAccount().getAccountId());
-            resultSet = statement.executeQuery();
-            if (!resultSet.next()) {
-                throw new NotSavedSubEntityException("В таблице sber_accounts не существует записи с id = ", entity.getAccount().getAccountId());
-            }
-            statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, entity.getCardNumber());
-            statement.setLong(2, entity.getAccount().getAccountId());
-            statement.setLong(3, entity.getOwner().getUserId());
-            int rows = statement.executeUpdate();
-            ResultSet resultset = statement.getGeneratedKeys();
-            resultset.next();
-            entity.setCardId(resultset.getLong(1));
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        statement = connection.prepareStatement("SELECT * FROM sber_users WHERE user_id = ?");
+        statement.setLong(1, entity.getOwner().getUserId());
+        ResultSet resultSet = statement.executeQuery();
+        if (!resultSet.next()) {
+            throw new NotSavedSubEntityException("В таблице sber_users не существует записи с id = ", entity.getOwner().getUserId());
         }
+        statement = connection.prepareStatement("SELECT * FROM sber_accounts WHERE account_id = ?");
+        statement.setLong(1, entity.getAccount().getAccountId());
+        resultSet = statement.executeQuery();
+        if (!resultSet.next()) {
+            throw new NotSavedSubEntityException("В таблице sber_accounts не существует записи с id = ", entity.getAccount().getAccountId());
+        }
+        statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS);
+        statement.setString(1, entity.getCardNumber());
+        statement.setLong(2, entity.getAccount().getAccountId());
+        statement.setLong(3, entity.getOwner().getUserId());
+        statement.executeUpdate();
+        ResultSet resultset = statement.getGeneratedKeys();
+        resultset.next();
+        entity.setCardId(resultset.getLong(1));
     }
 
     private final String SQL_UPDATE_CARDS = "UPDATE sber_cards\n" +
@@ -160,30 +141,26 @@ public class CardRepositoryImp implements CardRepository<Card>{
 
     @Override
     public void update(Card entity) throws SQLException {
-        PreparedStatement statement = null;
+        PreparedStatement statement;
 
-        try {
-            statement = connection.prepareStatement(SQL_UPDATE_CARDS);
-            if (entity.getCardNumber() != null) {
-                statement.setString(1, entity.getCardNumber());
-            } else {
-                throw new NotSavedSubEntityException("Значение cardNumber = ", null);
-            }
-            if (entity.getAccount().getAccountId() != null) {
-                statement.setLong(2, entity.getAccount().getAccountId());
-            } else {
-                throw new NotSavedSubEntityException("Значение accountId = ", null);
-            }
-            if (entity.getOwner().getUserId() != null) {
-                statement.setLong(3, entity.getOwner().getUserId());
-            } else {
-                throw new NotSavedSubEntityException("Значение userId = ", null);
-            }
-            statement.setLong(4, entity.getCardId());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        statement = connection.prepareStatement(SQL_UPDATE_CARDS);
+        if (entity.getCardNumber() != null && !entity.getCardNumber().isEmpty()) {
+            statement.setString(1, entity.getCardNumber());
+        } else {
+            throw new NotSavedSubEntityException("Значение cardNumber = ", null);
         }
+        if (entity.getAccount().getAccountId() != null && entity.getAccount().getAccountId() != 0L) {
+            statement.setLong(2, entity.getAccount().getAccountId());
+        } else {
+            throw new NotSavedSubEntityException("Значение accountId = ", null);
+        }
+        if (entity.getOwner().getUserId() != null && entity.getOwner().getUserId() != 0L) {
+            statement.setLong(3, entity.getOwner().getUserId());
+        } else {
+            throw new NotSavedSubEntityException("Значение userId = ", null);
+        }
+        statement.setLong(4, entity.getCardId());
+        statement.executeUpdate();
     }
 
     private final String SQL_DELETE = "DELETE FROM sber_cards WHERE card_id = ?";
@@ -192,13 +169,9 @@ public class CardRepositoryImp implements CardRepository<Card>{
     public void delete(Long id) throws SQLException {
         PreparedStatement statement;
 
-        try {
-            statement = connection.prepareStatement(SQL_DELETE);
-            statement.setLong(1, id);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
+        statement = connection.prepareStatement(SQL_DELETE);
+        statement.setLong(1, id);
+        statement.executeUpdate();
     }
 
     private final String SQL_SELECT_GET_BY_CARD_NUMBER = "SELECT * FROM sber_cards \n" +
@@ -210,42 +183,34 @@ public class CardRepositoryImp implements CardRepository<Card>{
     public Optional<Card> getByNumber(String cardNumber) throws SQLException {
         PreparedStatement statement = null;
 
-        try {
-            statement = connection.prepareStatement(SQL_SELECT_GET_BY_CARD_NUMBER);
-            statement.setString(1, cardNumber);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                Long cardId = resultSet.getLong("card_id");
-                Long accountId = resultSet.getLong("account_id");
-                String accountNumber = resultSet.getString("account_number");
-                BigDecimal balance = resultSet.getBigDecimal("balance");
-                Long userId = resultSet.getLong("user_id");
-                String firstName = resultSet.getString("first_name");
-                String lastName = resultSet.getString("last_name");
-
-                User user = User.builder()
-                        .userId(userId)
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .build();
-
-                return Optional.of(Card.builder()
-                        .cardId(cardId)
-                        .cardNumber(cardNumber)
-                        .account(Account.builder()
-                                .accountId(accountId)
-                                .accountNumber(accountNumber)
-                                .balance(balance)
-                                .owner(user)
-                                .build())
-                        .owner(user)
-                        .build());
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        statement = connection.prepareStatement(SQL_SELECT_GET_BY_CARD_NUMBER);
+        statement.setString(1, cardNumber);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            Long cardId = resultSet.getLong("card_id");
+            Long accountId = resultSet.getLong("account_id");
+            String accountNumber = resultSet.getString("account_number");
+            BigDecimal balance = resultSet.getBigDecimal("balance");
+            Long userId = resultSet.getLong("user_id");
+            String firstName = resultSet.getString("first_name");
+            String lastName = resultSet.getString("last_name");
+            User user = User.builder()
+                    .userId(userId)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .build();
+            return Optional.of(Card.builder()
+                    .cardId(cardId)
+                    .cardNumber(cardNumber)
+                    .account(Account.builder()
+                            .accountId(accountId)
+                            .accountNumber(accountNumber)
+                            .balance(balance)
+                            .owner(user)
+                            .build())
+                    .owner(user)
+                    .build());
         }
-
         return Optional.empty();
     }
 }
