@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,19 +23,19 @@ public class TestUserRepository {
     DataSource dataSource;
 
     final User EXPECTED_GET_BY_ID = User.builder()
-            .userId(2l)
+            .userId(2L)
             .firstName("Sergey")
             .lastName("Larin")
             .accounts(new ArrayList<>(asList(Account.builder()
-                    .accountId(4l)
+                    .accountId(4L)
                     .accountNumber("2054 6334 2299 8376")
                     .balance(new BigDecimal("7043.54"))
                     .build())))
             .cards(new ArrayList<>(asList(Card.builder()
-                    .cardId(4l)
+                    .cardId(4L)
                     .cardNumber("2054 6334 2299 8376")
                     .account(Account.builder()
-                            .accountId(4l)
+                            .accountId(4L)
                             .accountNumber("2054 6334 2299 8376")
                             .balance(new BigDecimal("7043.54"))
                             .build())
@@ -41,95 +43,95 @@ public class TestUserRepository {
             .build();
 
     final List<User> EXPECTED_GET_ALL = new ArrayList<>(asList(User.builder()
-            .userId(1l)
+            .userId(1L)
             .firstName("Andrey")
             .lastName("Sidorov")
             .accounts(new ArrayList<>(asList(Account.builder()
-                    .accountId(2l)
+                    .accountId(2L)
                     .accountNumber("4356 3834 1234 2855")
                     .balance(new BigDecimal("30045.23"))
                     .build())))
             .cards(new ArrayList<>(asList(Card.builder()
-                    .cardId(2l)
+                    .cardId(2L)
                     .cardNumber("4356 3834 1234 2855")
                     .account(Account.builder()
-                            .accountId(2l)
+                            .accountId(2L)
                             .accountNumber("4356 3834 1234 2855")
                             .balance(new BigDecimal("30045.23"))
                             .build())
                     .build())))
             .build(),
             User.builder()
-                    .userId(2l)
+                    .userId(2L)
                     .firstName("Sergey")
                     .lastName("Larin")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(4l)
+                            .accountId(4L)
                             .accountNumber("2054 6334 2299 8376")
                             .balance(new BigDecimal("7043.54"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(4l)
+                            .cardId(4L)
                             .cardNumber("2054 6334 2299 8376")
                             .account(Account.builder()
-                                    .accountId(4l)
+                                    .accountId(4L)
                                     .accountNumber("2054 6334 2299 8376")
                                     .balance(new BigDecimal("7043.54"))
                                     .build())
                             .build())))
                     .build(),
             User.builder()
-                    .userId(3l)
+                    .userId(3L)
                     .firstName("Anton")
                     .lastName("Zubov")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(3l)
+                            .accountId(3L)
                             .accountNumber("7356 9264 7634 2534")
                             .balance(new BigDecimal("2000.00"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(3l)
+                            .cardId(3L)
                             .cardNumber("7356 9264 7634 2534")
                             .account(Account.builder()
-                                    .accountId(3l)
+                                    .accountId(3L)
                                     .accountNumber("7356 9264 7634 2534")
                                     .balance(new BigDecimal("2000.00"))
                                     .build())
                             .build())))
                     .build(),
             User.builder()
-                    .userId(4l)
+                    .userId(4L)
                     .firstName("Zaur")
                     .lastName("Ivanov")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(5l)
+                            .accountId(5L)
                             .accountNumber("9934 9264 3456 4423")
                             .balance(new BigDecimal("12900.40"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(5l)
+                            .cardId(5L)
                             .cardNumber("9934 9264 3456 4423")
                             .account(Account.builder()
-                                    .accountId(5l)
+                                    .accountId(5L)
                                     .accountNumber("9934 9264 3456 4423")
                                     .balance(new BigDecimal("12900.40"))
                                     .build())
                             .build())))
                     .build(),
             User.builder()
-                    .userId(5l)
+                    .userId(5L)
                     .firstName("Marsel")
                     .lastName("Abramov")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(1l)
+                            .accountId(1L)
                             .accountNumber("4356 3245 1234 7345")
                             .balance(new BigDecimal("245.30"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(1l)
+                            .cardId(1L)
                             .cardNumber("4356 3245 1234 7345")
                             .account(Account.builder()
-                                    .accountId(1l)
+                                    .accountId(1L)
                                     .accountNumber("4356 3245 1234 7345")
                                     .balance(new BigDecimal("245.30"))
                                     .build())
@@ -143,54 +145,24 @@ public class TestUserRepository {
             .cards(new ArrayList<>())
             .build();
 
-    final User EXPECTED_SAVE_FIRST_NAME_IS_NULL = User.builder()
-            .firstName(null)
-            .lastName("Pashin")
-            .accounts(new ArrayList<>())
-            .cards(new ArrayList<>())
-            .build();
-
-    final User EXPECTED_SAVE_LAST_NAME_IS_NULL = User.builder()
-            .firstName("Ivan")
-            .lastName(null)
-            .accounts(new ArrayList<>())
-            .cards(new ArrayList<>())
-            .build();
-
     final User EXPECTED_UPDATE = User.builder()
             .userId(2L)
             .firstName("Ivan")
             .lastName("Buzov")
             .accounts(new ArrayList<>(asList(Account.builder()
-                    .accountId(4l)
+                    .accountId(4L)
                     .accountNumber("2054 6334 2299 8376")
                     .balance(new BigDecimal("7043.54"))
                     .build())))
             .cards(new ArrayList<>(asList(Card.builder()
-                    .cardId(4l)
+                    .cardId(4L)
                     .cardNumber("2054 6334 2299 8376")
                     .account(Account.builder()
-                            .accountId(4l)
+                            .accountId(4L)
                             .accountNumber("2054 6334 2299 8376")
                             .balance(new BigDecimal("7043.54"))
                             .build())
                     .build())))
-            .build();
-
-    final User EXPECTED_UPDATE_FIRST_NAME_IS_NULL = User.builder()
-            .userId(4L)
-            .firstName(null)
-            .lastName("Pashin")
-            .accounts(new ArrayList<>())
-            .cards(new ArrayList<>())
-            .build();
-
-    final User EXPECTED_UPDATE_LAST_NAME_IS_NULL = User.builder()
-            .userId(4L)
-            .firstName("Ivan")
-            .lastName(null)
-            .accounts(new ArrayList<>())
-            .cards(new ArrayList<>())
             .build();
 
     final List<User> EXPECTED_DELETE = new ArrayList<>(asList(User.builder()
@@ -232,38 +204,38 @@ public class TestUserRepository {
                             .build())))
                     .build(),
             User.builder()
-                    .userId(4l)
+                    .userId(4L)
                     .firstName("Zaur")
                     .lastName("Ivanov")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(5l)
+                            .accountId(5L)
                             .accountNumber("9934 9264 3456 4423")
                             .balance(new BigDecimal("12900.40"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(5l)
+                            .cardId(5L)
                             .cardNumber("9934 9264 3456 4423")
                             .account(Account.builder()
-                                    .accountId(5l)
+                                    .accountId(5L)
                                     .accountNumber("9934 9264 3456 4423")
                                     .balance(new BigDecimal("12900.40"))
                                     .build())
                             .build())))
                     .build(),
             User.builder()
-                    .userId(5l)
+                    .userId(5L)
                     .firstName("Marsel")
                     .lastName("Abramov")
                     .accounts(new ArrayList<>(asList(Account.builder()
-                            .accountId(1l)
+                            .accountId(1L)
                             .accountNumber("4356 3245 1234 7345")
                             .balance(new BigDecimal("245.30"))
                             .build())))
                     .cards(new ArrayList<>(asList(Card.builder()
-                            .cardId(1l)
+                            .cardId(1L)
                             .cardNumber("4356 3245 1234 7345")
                             .account(Account.builder()
-                                    .accountId(1l)
+                                    .accountId(1L)
                                     .accountNumber("4356 3245 1234 7345")
                                     .balance(new BigDecimal("245.30"))
                                     .build())
@@ -271,11 +243,53 @@ public class TestUserRepository {
                     .build()));
 
     @BeforeEach
-    public void init() {
+    public void init() throws SQLException {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setUser("sa");
         ds.setPassword("");
-        ds.setUrl("jdbc:h2:mem:test;INIT=runscript from 'src/test/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
+        ds.setUrl("jdbc:h2:~/test");
+        try (Connection conn = ds.getConnection()) {
+            try (Statement statement = conn.createStatement()) {
+
+                statement.execute("DROP TABLE IF EXISTS sber_cards");
+                statement.execute("DROP TABLE IF EXISTS sber_accounts");
+                statement.execute("DROP TABLE IF EXISTS sber_users");
+
+                statement.execute("CREATE TABLE sber_users (\n" +
+                        "    user_id BIGSERIAL PRIMARY KEY,\n" +
+                        "    first_name VARCHAR(50),\n" +
+                        "    last_name VARCHAR(50)\n" +
+                        ");");
+                statement.execute("CREATE TABLE sber_accounts (\n" +
+                        "    account_id BIGSERIAL PRIMARY KEY,\n" +
+                        "    account_number VARCHAR(30) UNIQUE,\n" +
+                        "    balance DECIMAL(15,2),\n" +
+                        "    owner_id BIGINT REFERENCES sber_users(user_id) ON DELETE CASCADE\n" +
+                        ");");
+                statement.execute("CREATE TABLE sber_cards (\n" +
+                        "    card_id BIGSERIAL PRIMARY KEY,\n" +
+                        "    card_number VARCHAR(30) UNIQUE,\n" +
+                        "    account_id BIGINT REFERENCES sber_accounts(account_id) ON DELETE CASCADE,\n" +
+                        "    owner_id BIGINT REFERENCES sber_users(user_id) ON DELETE CASCADE\n" +
+                        ")");
+
+                statement.execute("INSERT INTO sber_users(first_name, last_name) VALUES ('Andrey', 'Sidorov')");
+                statement.execute("INSERT INTO sber_users(first_name, last_name) VALUES ('Sergey', 'Larin')");
+                statement.execute("INSERT INTO sber_users(first_name, last_name) VALUES ('Anton', 'Zubov')");
+                statement.execute("INSERT INTO sber_users(first_name, last_name) VALUES ('Zaur', 'Ivanov')");
+                statement.execute("INSERT INTO sber_users(first_name, last_name) VALUES ('Marsel', 'Abramov')");
+                statement.execute("INSERT INTO sber_accounts(account_number, owner_id, balance) VALUES ('4356 3245 1234 7345', 5, 245.30)");
+                statement.execute("INSERT INTO sber_accounts(account_number, owner_id, balance) VALUES ('4356 3834 1234 2855', 1, 30045.23)");
+                statement.execute("INSERT INTO sber_accounts(account_number, owner_id, balance) VALUES ('7356 9264 7634 2534', 3, 2000.00)");
+                statement.execute("INSERT INTO sber_accounts(account_number, owner_id, balance) VALUES ('2054 6334 2299 8376', 2, 7043.54)");
+                statement.execute("INSERT INTO sber_accounts(account_number, owner_id, balance) VALUES ('9934 9264 3456 4423', 4, 12900.40)");
+                statement.execute("INSERT INTO sber_cards(card_number, account_id, owner_id) VALUES ('4356 3245 1234 7345', 1, 5)");
+                statement.execute("INSERT INTO sber_cards(card_number, account_id, owner_id) VALUES ('4356 3834 1234 2855', 2, 1)");
+                statement.execute("INSERT INTO sber_cards(card_number, account_id, owner_id) VALUES ('7356 9264 7634 2534', 3, 3)");
+                statement.execute("INSERT INTO sber_cards(card_number, account_id, owner_id) VALUES ('2054 6334 2299 8376', 4, 2)");
+                statement.execute("INSERT INTO sber_cards(card_number, account_id, owner_id) VALUES ('9934 9264 3456 4423', 5, 4)");
+            }
+        }
         dataSource = ds;
     }
 
@@ -283,7 +297,7 @@ public class TestUserRepository {
     void isGet() {
         try {
             UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            User  check = userRepository.get(2l).get();
+            User  check = userRepository.get(2L).get();
             assertEquals(check, EXPECTED_GET_BY_ID);
         } catch (SQLException throwables) {
             fail();
@@ -317,38 +331,6 @@ public class TestUserRepository {
     }
 
     @Test
-    void isSaveNotFirstName() {
-        try {
-            UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
-                userRepository.save(EXPECTED_SAVE_FIRST_NAME_IS_NULL);
-            });
-            String expectedMessage = "Значение firstName =  null";
-            String actualMessage = exception.getMessage();
-            assertTrue(actualMessage.contains(expectedMessage));
-        } catch (SQLException throwables) {
-            fail();
-            throwables.printStackTrace();
-        }
-    }
-
-    @Test
-    void isSaveNotLastName() {
-        try {
-            UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
-                userRepository.save(EXPECTED_SAVE_LAST_NAME_IS_NULL);
-            });
-            String expectedMessage = "Значение lastName =  null";
-            String actualMessage = exception.getMessage();
-            assertTrue(actualMessage.contains(expectedMessage));
-        } catch (SQLException throwables) {
-            fail();
-            throwables.printStackTrace();
-        }
-    }
-
-    @Test
     void isUpdate() {
         try {
             UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
@@ -362,42 +344,10 @@ public class TestUserRepository {
     }
 
     @Test
-    void isUpdateNotFirstName() {
-        try {
-            UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
-                userRepository.update(EXPECTED_UPDATE_FIRST_NAME_IS_NULL);
-            });
-            String expectedMessage = "Значение firstName =  null";
-            String actualMessage = exception.getMessage();
-            assertTrue(actualMessage.contains(expectedMessage));
-        } catch (SQLException throwables) {
-            fail();
-            throwables.printStackTrace();
-        }
-    }
-
-    @Test
-    void isUpdateNotLastName() {
-        try {
-            UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            Exception exception = assertThrows(NotSavedSubEntityException.class, () -> {
-                userRepository.update(EXPECTED_UPDATE_LAST_NAME_IS_NULL);
-            });
-            String expectedMessage = "Значение lastName =  null";
-            String actualMessage = exception.getMessage();
-            assertTrue(actualMessage.contains(expectedMessage));
-        } catch (SQLException throwables) {
-            fail();
-            throwables.printStackTrace();
-        }
-    }
-
-    @Test
     void isDelete(){
         try {
             UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            userRepository.delete(2l);
+            userRepository.delete(2L);
             List<User> check = userRepository.getAll();
             assertEquals(check, EXPECTED_DELETE);
         } catch (SQLException throwables) {
@@ -410,19 +360,11 @@ public class TestUserRepository {
     void isGetEmpty() {
         try {
             UserRepositoryImp userRepository = new UserRepositoryImp(dataSource);
-            Optional check = userRepository.get(9l);
+            Optional check = userRepository.get(9L);
             assertEquals(check, Optional.empty());
         } catch (SQLException throwables) {
             fail();
             throwables.printStackTrace();
         }
-    }
-
-    @Test
-    void isNotConnection() {
-        JdbcDataSource ds = new JdbcDataSource();
-        assertThrows(SQLException.class, () -> {
-            new UserRepositoryImp(ds);
-        });
     }
 }

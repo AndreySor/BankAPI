@@ -12,7 +12,8 @@ public class ServiceDataSource {
         HikariConfig config = new HikariConfig();
         config.setUsername("sa");
         config.setPassword("");
-        config.setJdbcUrl("jdbc:h2:~/test;AUTO_SERVER=TRUE;Mode=Oracle;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/main/resources/data.sql'");
+        config.setJdbcUrl("jdbc:h2:~/test;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
+//        config.setJdbcUrl("jdbc:h2:~/test");
 
         ds = new HikariDataSource(config);
     }
