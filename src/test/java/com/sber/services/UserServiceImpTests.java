@@ -3,15 +3,9 @@ package com.sber.services;
 import com.sber.models.Account;
 import com.sber.models.Card;
 import com.sber.models.User;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +37,7 @@ public class UserServiceImpTests {
     }
 
     @Test
-    void isReturnListCardsIsUserIdNull() {
+    void isReturnListCardsIsUserIsNull() {
         User user = User.builder()
                 .userId(null)
                 .firstName("Sergey")
@@ -55,71 +49,11 @@ public class UserServiceImpTests {
     }
 
     @Test
-    void isReturnListCardsIsFirstNameNull() {
+    void isReturnListCardsIsUserIsZero() {
         User user = User.builder()
-                .userId(2L)
-                .firstName(null)
-                .lastName("Larin")
-                .build();
-        UserServiceImp userServiceImp = new UserServiceImp();
-        List<Card> cards = userServiceImp.returnListCards(user);
-        assertEquals(cards, new ArrayList<>());
-    }
-
-    @Test
-    void isReturnListCardsIsLastNameNull() {
-        User user = User.builder()
-                .userId(2L)
+                .userId(0L)
                 .firstName("Sergey")
-                .lastName(null)
-                .build();
-        UserServiceImp userServiceImp = new UserServiceImp();
-        List<Card> cards = userServiceImp.returnListCards(user);
-        assertEquals(cards, new ArrayList<>());
-    }
-
-    @Test
-    void isReturnListCardsIsFirstNameEmpty() {
-        User user = User.builder()
-                .userId(2L)
-                .firstName("")
                 .lastName("Larin")
-                .build();
-        UserServiceImp userServiceImp = new UserServiceImp();
-        List<Card> cards = userServiceImp.returnListCards(user);
-        assertEquals(cards, new ArrayList<>());
-    }
-
-    @Test
-    void isReturnListCardsIsLastNameEmpty() {
-        User user = User.builder()
-                .userId(2L)
-                .firstName("Sergey")
-                .lastName("")
-                .build();
-        UserServiceImp userServiceImp = new UserServiceImp();
-        List<Card> cards = userServiceImp.returnListCards(user);
-        assertEquals(cards, new ArrayList<>());
-    }
-
-    @Test
-    void isReturnListCardsIsFirstNameWrong() {
-        User user = User.builder()
-                .userId(2L)
-                .firstName("Ivan")
-                .lastName("Larin")
-                .build();
-        UserServiceImp userServiceImp = new UserServiceImp();
-        List<Card> cards = userServiceImp.returnListCards(user);
-        assertEquals(cards, new ArrayList<>());
-    }
-
-    @Test
-    void isReturnListCardsIsLastNameWrong() {
-        User user = User.builder()
-                .userId(2L)
-                .firstName("Sergey")
-                .lastName("Petrov")
                 .build();
         UserServiceImp userServiceImp = new UserServiceImp();
         List<Card> cards = userServiceImp.returnListCards(user);

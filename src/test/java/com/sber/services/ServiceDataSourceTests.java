@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import static com.sber.services.ServiceDataSource.getDataSource;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestServiceDataSource {
+public class ServiceDataSourceTests {
     @Test
     public void shouldGetConnectionFromDataSource() throws SQLException {
         DeleteDbFiles.execute("~", "test", true);

@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 
 public interface AccountService {
     public String balanceReplenishment(Account account);
-    public BigDecimal checkingBalance(Account account);
+    public Account checkingBalance(Account account);
 }

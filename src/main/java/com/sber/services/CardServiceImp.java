@@ -5,7 +5,6 @@ import com.sber.models.Card;
 import com.sber.repositories.AccountRepositoryImp;
 import com.sber.repositories.CardRepositoryImp;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -20,17 +19,16 @@ public class CardServiceImp implements CardService{
 
     @Override
     public String addNewCardOnAccountNumber(Account account) {
-        if (account != null && account.getBalance().compareTo(new BigDecimal(0)) > 0 &&
-                (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
+        if (account != null && (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
             AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
-                Optional changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
+                Optional<Account> changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
                 if (changeAccount.isPresent()) {
                     Generator generator = new Generator();
                     Card newCard = Card.builder()
                             .cardNumber(generator.generateCardNumber())
-                            .account((Account) changeAccount.get())
-                            .owner(((Account) changeAccount.get()).getOwner())
+                            .account(changeAccount.get())
+                            .owner(changeAccount.get().getOwner())
                             .build();
                     CardRepositoryImp cardRepositoryImp = new CardRepositoryImp(ServiceDataSource.getDataSource());
                     cardRepositoryImp.save(newCard);
@@ -43,7 +41,7 @@ public class CardServiceImp implements CardService{
         return UNSUCCESS;
     }
 
-    private class Generator {
+    private static class Generator {
         public String generateCardNumber() {
             String cardNumber = String.valueOf((int) (Math.random() * 9));;
 

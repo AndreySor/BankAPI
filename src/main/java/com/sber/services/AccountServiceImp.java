@@ -37,14 +37,14 @@ public class AccountServiceImp implements AccountService{
     }
 
     @Override
-    public BigDecimal checkingBalance(Account account) {
+    public Account checkingBalance(Account account) {
         if (account != null && (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
             AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
                 Optional changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
                 if (changeAccount.isPresent()) {
                     Account checkBalance = (Account) changeAccount.get();
-                    return checkBalance.getBalance();
+                    return checkBalance;
                 }
             } catch (SQLException ex) {
                 log.log(Level.SEVERE, "Exception: ", ex);

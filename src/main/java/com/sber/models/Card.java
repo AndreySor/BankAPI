@@ -1,11 +1,17 @@
 package com.sber.models;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Objects;
 
+@JsonAutoDetect
 public class Card {
     private Long cardId;
     private String cardNumber;
+    @JsonIgnore
     private Account account;
+    @JsonIgnore
     private User owner;
 
     private Card(Builder builder) {

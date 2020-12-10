@@ -1,18 +1,25 @@
 package com.sber.models;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@JsonAutoDetect
 public class Account {
     private Long accountId;
     private String accountNumber;
     private BigDecimal balance;
+    @JsonIgnore
     private User owner;
+
+    public Account() { }
 
     private Account(Builder builder) {
         this.accountId = builder.accountId;
         this.accountNumber = builder.accountNumber;
-        this.balance = builder.balance.setScale(2);
+        this.balance = builder.balance;
         this.owner = builder.owner;
     }
 

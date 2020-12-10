@@ -122,8 +122,8 @@ public class AccountServiceImpTests {
                 .build();
 
         AccountServiceImp accountServiceImp = new AccountServiceImp();
-        BigDecimal result = accountServiceImp.checkingBalance(account);
-        assertEquals(result, new BigDecimal("7043.54"));
+        Account result = accountServiceImp.checkingBalance(account);
+        assertEquals(result.getBalance(), new BigDecimal("7043.54"));
     }
 
     @Test
@@ -134,14 +134,14 @@ public class AccountServiceImpTests {
                 .build();
 
         AccountServiceImp accountServiceImp = new AccountServiceImp();
-        BigDecimal result = accountServiceImp.checkingBalance(account);
+        Account result = accountServiceImp.checkingBalance(account);
         assertNull(result);
     }
 
     @Test
     void isCheckingBalanceAccountIsNull() {
         AccountServiceImp accountServiceImp = new AccountServiceImp();
-        BigDecimal result = accountServiceImp.checkingBalance(null);
+        Account result = accountServiceImp.checkingBalance(null);
         assertNull(result);
     }
 
@@ -153,7 +153,7 @@ public class AccountServiceImpTests {
                 .build();
 
         AccountServiceImp accountServiceImp = new AccountServiceImp();
-        BigDecimal result = accountServiceImp.checkingBalance(account);
+        Account result = accountServiceImp.checkingBalance(account);
         assertNull(result);
     }
 
@@ -165,7 +165,7 @@ public class AccountServiceImpTests {
                 .build();
 
         AccountServiceImp accountServiceImp = new AccountServiceImp();
-        BigDecimal result = accountServiceImp.checkingBalance(account);
+        Account result = accountServiceImp.checkingBalance(account);
         assertNull(result);
     }
 }

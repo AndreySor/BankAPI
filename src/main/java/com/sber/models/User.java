@@ -1,14 +1,19 @@
 package com.sber.models;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
 import java.util.List;
 import java.util.Objects;
 
+@JsonAutoDetect
 public class User {
     private Long userId;
     private String firstName;
     private String lastName;
     private List<Account> accounts;
     private List<Card> cards;
+
+    public User() {}
 
     private User(Builder builder) {
         this.userId = builder.userId;
@@ -118,8 +123,8 @@ public class User {
 
     @Override
     public String toString() {
-        return "Person{" +
-                "personId=" + userId +
+        return "User{" +
+                "userId=" + userId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", accounts=" + accounts +

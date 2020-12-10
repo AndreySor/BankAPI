@@ -18,18 +18,14 @@ public class UserServiceImp implements UserService{
     @Override
     public List<Card> returnListCards(User user) {
         List<Card> cards = new ArrayList<>();
-        if (user != null && (user.getUserId() != null && user.getUserId() != 0) &&
-                (user.getFirstName() != null && !user.getFirstName().isEmpty()) &&
-                (user.getLastName() != null && !user.getLastName().isEmpty())) {
+        if (user != null && (user.getUserId() != null && user.getUserId() != 0)) {
             UserRepositoryImp userRepositoryImp = new UserRepositoryImp(ServiceDataSource.getDataSource());
             Optional<User> optional = null;
             try {
                 optional = userRepositoryImp.get(user.getUserId());
                 if (optional.isPresent()) {
                     User findUser = optional.get();
-                    if (findUser.getFirstName().equals(user.getFirstName()) && findUser.getLastName().equals(user.getLastName())) {
-                        cards = findUser.getCards();
-                    }
+                    cards = findUser.getCards();
                 }
             } catch (SQLException ex) {
                 log.log(Level.SEVERE, "Exception: ", ex);
