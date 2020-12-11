@@ -13,8 +13,8 @@ public class ServiceDataSource {
         HikariConfig config = new HikariConfig();
         config.setUsername("sa");
         config.setPassword("");
-        config.setJdbcUrl("jdbc:h2:~/test;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
-//        config.setJdbcUrl("jdbc:h2:~/test");
+//        config.setJdbcUrl("jdbc:h2:~/test;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
+        config.setJdbcUrl("jdbc:h2:~/test");
 
         dataSource = new HikariDataSource(config);
 //        JdbcDataSource ds = new JdbcDataSource();

@@ -19,7 +19,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestsCardRepository {
+public class CardRepositoryTests {
     DataSource dataSource;
 
     final Card EXPECTED_GET_BY_ID = Card.builder()

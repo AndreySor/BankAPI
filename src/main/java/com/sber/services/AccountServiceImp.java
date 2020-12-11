@@ -38,12 +38,12 @@ public class AccountServiceImp implements AccountService{
 
     @Override
     public Account checkingBalance(Account account) {
-        if (account != null && (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
+        if (account != null && account.getAccountId() != null && account.getAccountId() !=0L) {
             AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
-                Optional changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
+                Optional<Account> changeAccount = accountRepositoryImp.get(account.getAccountId());
                 if (changeAccount.isPresent()) {
-                    Account checkBalance = (Account) changeAccount.get();
+                    Account checkBalance = changeAccount.get();
                     return checkBalance;
                 }
             } catch (SQLException ex) {

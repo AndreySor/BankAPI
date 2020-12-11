@@ -19,7 +19,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestUserRepository {
+public class UserRepositoryTests {
     DataSource dataSource;
 
     final User EXPECTED_GET_BY_ID = User.builder()

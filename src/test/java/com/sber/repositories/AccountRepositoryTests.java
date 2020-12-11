@@ -18,7 +18,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestAccountRepository {
+public class AccountRepositoryTests {
     DataSource dataSource;
 
     final  Account EXPECTED_GET_BY_ID = Account.builder()
@@ -216,7 +216,7 @@ public class TestAccountRepository {
     void isGetIsEmpty() {
         try {
             AccountRepositoryImp accountRepository = new AccountRepositoryImp(dataSource);
-            Optional check = accountRepository.get(9l);
+            Optional check = accountRepository.get(9L);
             assertEquals(check, Optional.empty());
         } catch (SQLException throwables) {
             fail();
@@ -241,7 +241,7 @@ public class TestAccountRepository {
         try {
             AccountRepositoryImp accountRepository = new AccountRepositoryImp(dataSource);
             accountRepository.save(EXPECTED_SAVE);
-            Account check = accountRepository.get(6l).get();
+            Account check = accountRepository.get(6L).get();
             assertEquals(check, EXPECTED_SAVE);
         } catch (SQLException throwables) {
             fail();
@@ -254,7 +254,7 @@ public class TestAccountRepository {
         try {
             AccountRepositoryImp accountRepository = new AccountRepositoryImp(dataSource);
             accountRepository.update(EXPECTED_UPDATE);
-            Account check = accountRepository.get(4l).get();
+            Account check = accountRepository.get(4L).get();
             assertEquals(check, EXPECTED_UPDATE);
         } catch (SQLException throwables) {
             fail();
@@ -266,7 +266,7 @@ public class TestAccountRepository {
     void isDelete(){
         try {
             AccountRepositoryImp accountRepository = new AccountRepositoryImp(dataSource);
-            accountRepository.delete(2l);
+            accountRepository.delete(2L);
             List<Account> check = accountRepository.getAll();
             assertEquals(check, EXPECTED_DELETE);
         } catch (SQLException throwables) {

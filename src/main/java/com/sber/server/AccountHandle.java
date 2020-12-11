@@ -16,11 +16,14 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AccountHandle implements HttpHandler {
+    private static Logger log = Logger.getLogger(AccountHandle.class.getName());
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         if ("GET".equals(exchange.getRequestMethod())) {
             checkingBalanceHandleResponse(exchange);
         } else if ("POST".equals(exchange.getRequestMethod())) {
@@ -28,13 +31,13 @@ public class AccountHandle implements HttpHandler {
         }
     }
 
-    private void checkingBalanceHandleResponse(HttpExchange exchange) throws IOException {
+    private void checkingBalanceHandleResponse(HttpExchange exchange) {
         ObjectMapper mapper = new ObjectMapper();
         String balanceJSON = "[{\"status\":\"fail\"}]";
-        String accountNumber = exchange.getRequestURI().toString().split("\\?")[1].split("=")[1];
+        String accountId = exchange.getRequestURI().toString().split("\\?")[1].split("=")[1];
         try {
             Account account = Account.builder()
-                    .accountNumber(accountNumber)
+                    .accountId(Long.parseLong(accountId))
                     .build();
             AccountServiceImp accountServiceImp = new AccountServiceImp();
             Account checkBalance = accountServiceImp.checkingBalance(account);
@@ -45,16 +48,17 @@ public class AccountHandle implements HttpHandler {
                 balanceJSON = "[{\"status\":\"fail\"}]";
                 exchange.sendResponseHeaders(500, balanceJSON.length());
             }
+            OutputStream os = exchange.getResponseBody();
+            os.write(balanceJSON.getBytes(StandardCharsets.UTF_8));
+            os.flush();
+            os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "Exception: ", e);
         }
-        OutputStream os = exchange.getResponseBody();
-        os.write(balanceJSON.getBytes(StandardCharsets.UTF_8));
-        os.flush();
-        os.close();
+
     }
 
-    private void balanceReplenishmentHandleResponse(HttpExchange exchange) throws IOException {
+    private void balanceReplenishmentHandleResponse(HttpExchange exchange) {
         ObjectMapper mapper = new ObjectMapper();
         InputStream response = exchange.getRequestBody();
         Scanner in = new Scanner(response);
@@ -73,7 +77,7 @@ public class AccountHandle implements HttpHandler {
             os.flush();
             os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "Exception: ", e);
         }
     }
 }

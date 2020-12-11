@@ -33,8 +33,6 @@ public class AccountRepositoryImp implements AccountRepository {
             "INNER JOIN sber_users ON (sber_accounts.owner_id = sber_users.user_id)\n" +
             "WHERE account_number = ?";
 
-
-
     public AccountRepositoryImp(DataSource dataSource){
         this.dataSource = dataSource;
     }

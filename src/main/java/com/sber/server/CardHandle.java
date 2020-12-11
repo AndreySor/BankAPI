@@ -10,8 +10,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CardHandle implements HttpHandler {
+    private static Logger log = Logger.getLogger(CardHandle.class.getName());
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -39,7 +42,7 @@ public class CardHandle implements HttpHandler {
             os.flush();
             os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "Exception: ", e);
         }
     }
 }

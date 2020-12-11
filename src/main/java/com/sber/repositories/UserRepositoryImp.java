@@ -20,7 +20,7 @@ public class UserRepositoryImp implements DaoRepository<User>{
             "WHERE user_id = ? ORDER BY sber_users.user_id, sber_accounts.account_id, sber_cards.card_id";
 
     private final String SQL_SELECT_GET_ALL = "SELECT * FROM sber_users \n" +
-            "INNER JOIN sber_accounts ON (sber_users.user_id = sber_accounts.owner_id)\n" +
+            "LEFT JOIN sber_accounts ON (sber_users.user_id = sber_accounts.owner_id)\n" +
             "LEFT JOIN sber_cards ON (sber_accounts.account_id = sber_cards.account_id)\n" +
             "ORDER BY sber_users.user_id, sber_accounts.account_id, sber_cards.card_id";
 

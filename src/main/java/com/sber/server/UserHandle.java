@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class  UserHandle implements HttpHandler {
+public class UserHandle implements HttpHandler {
+    private static Logger log = Logger.getLogger(UserHandle.class.getName());
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -38,12 +41,12 @@ public class  UserHandle implements HttpHandler {
                 cardsJSON = "[{\"status\":\"fail\"}]";
                 exchange.sendResponseHeaders(500, cardsJSON.length());
             }
+            OutputStream os = exchange.getResponseBody();
+            os.write(cardsJSON.getBytes(StandardCharsets.UTF_8));
+            os.flush();
+            os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "Exception: ", e);
         }
-        OutputStream os = exchange.getResponseBody();
-        os.write(cardsJSON.getBytes(StandardCharsets.UTF_8));
-        os.flush();
-        os.close();
     }
 }
