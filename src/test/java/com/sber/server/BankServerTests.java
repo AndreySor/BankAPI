@@ -1,28 +1,29 @@
 package com.sber.server;
 
-import com.sber.services.ServiceDataSource;
-import com.sun.net.httpserver.HttpServer;
+import com.sber.FullDatabase;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.sql.DataSource;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BankServerTests {
 
+    @BeforeEach
+    public void init() throws SQLException {
+        new FullDatabase().fullDatabase();
+    }
+
     @Test
     void isCreateNewCard() throws IOException {
 
-        JSONObject jsonObject = new JSONObject("{\"accountNumber\":\"4356 3245 1234 7345\"}");
+        JSONObject jsonObject = new JSONObject("{\"accountNumber\":\"4356 3245 1234 7345\",\"owner\":{\"userId\":5}}");
         HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:8001/creating-new-account-card").openConnection();
         connection.setRequestProperty("Accept-Charset", "UTF-8");
         connection.setRequestMethod("POST");
@@ -42,7 +43,7 @@ public class BankServerTests {
     @Test
     void isNotCreateNewCard() throws IOException {
 
-        JSONObject jsonObject = new JSONObject("{\"accountNumber\":\"4356 0000 1234 7345\"}");
+        JSONObject jsonObject = new JSONObject("{\"accountNumber\":\"4356 0000 1234 7345\",\"owner\":{\"userId\":5}}");
         HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:8001/creating-new-account-card").openConnection();
         connection.setRequestProperty("Accept-Charset", "UTF-8");
         connection.setRequestMethod("POST");

@@ -2,6 +2,7 @@ package com.sber.models;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -82,10 +83,12 @@ public class Account {
         this.balance = balance;
     }
 
+    @JsonIgnore
     public User getOwner() {
         return owner;
     }
 
+    @JsonProperty
     public void setOwner(User owner) {
         this.owner = owner;
     }
@@ -112,7 +115,7 @@ public class Account {
                 "accountId=" + accountId +
                 ", accountNumber='" + accountNumber + '\'' +
                 ", balance=" + balance +
-                ", owner=" + owner +
+                ", owner=" + owner.getFirstName() + " " + owner.getLastName().charAt(0) + "." +
                 '}';
     }
 }

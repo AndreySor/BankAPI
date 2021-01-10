@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sber.models.Account;
 import com.sber.models.Card;
 import com.sber.models.User;
-import com.sber.services.AccountServiceImp;
-import com.sber.services.CardServiceImp;
-import com.sber.services.UserServiceImp;
+import com.sber.services.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -39,21 +37,21 @@ public class AccountHandle implements HttpHandler {
             Account account = Account.builder()
                     .accountId(Long.parseLong(accountId))
                     .build();
-            AccountServiceImp accountServiceImp = new AccountServiceImp();
+            AccountService accountServiceImp = new AccountServiceImp();
             Account checkBalance = accountServiceImp.checkingBalance(account);
             if (checkBalance != null) {
                 balanceJSON = mapper.writeValueAsString(checkBalance);
                 exchange.sendResponseHeaders(200, balanceJSON.length());
             } else {
-                balanceJSON = "[{\"status\":\"fail\"}]";
                 exchange.sendResponseHeaders(500, balanceJSON.length());
             }
-            OutputStream os = exchange.getResponseBody();
-            os.write(balanceJSON.getBytes(StandardCharsets.UTF_8));
-            os.flush();
-            os.close();
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(balanceJSON.getBytes(StandardCharsets.UTF_8));
+                os.flush();
+            }
         } catch (IOException e) {
             log.log(Level.SEVERE, "Exception: ", e);
+            throw new NotSavedSubEntityException("failed to check balance");
         }
 
     }
@@ -61,6 +59,7 @@ public class AccountHandle implements HttpHandler {
     private void balanceReplenishmentHandleResponse(HttpExchange exchange) {
         ObjectMapper mapper = new ObjectMapper();
         InputStream response = exchange.getRequestBody();
+        String balanceJSON = "[{\"status\":\"FAIL\"}]";
         Scanner in = new Scanner(response);
         String stringJSON = in.nextLine();
         try {
@@ -68,16 +67,18 @@ public class AccountHandle implements HttpHandler {
             AccountServiceImp accountServiceImp = new AccountServiceImp();
             String result = accountServiceImp.balanceReplenishment(account);
             if (result.equals("SUCCESS")) {
+                balanceJSON = "[{\"status\":\"SUCCESS\"}]";
                 exchange.sendResponseHeaders(200, "".length());
             } else {
                 exchange.sendResponseHeaders(500, "".length());
             }
-            OutputStream os = exchange.getResponseBody();
-            os.write("".getBytes());
-            os.flush();
-            os.close();
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(balanceJSON.getBytes(StandardCharsets.UTF_8));
+                os.flush();
+            }
         } catch (IOException e) {
             log.log(Level.SEVERE, "Exception: ", e);
+            throw new NotSavedSubEntityException("failed to top up your balance");
         }
     }
 }

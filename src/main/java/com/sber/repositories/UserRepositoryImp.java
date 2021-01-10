@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class UserRepositoryImp implements DaoRepository<User>{
+public class UserRepositoryImp implements UserRepository<User>{
 
     private DataSource dataSource;
 
@@ -37,95 +37,71 @@ public class UserRepositoryImp implements DaoRepository<User>{
         this.dataSource = dataSource;
     }
 
+    private List<User> rowMapper(ResultSet resultSet) throws SQLException {
+        User user = null;
+        Account account = null;
+        List<User> users = new ArrayList<>();
+
+        while (resultSet.next()) {
+            Long userId = resultSet.getLong("user_id");
+            if (user == null || !(user.getUserId().equals(userId))) {
+                user = User.builder()
+                        .userId(userId)
+                        .firstName(resultSet.getString("first_name"))
+                        .lastName(resultSet.getString("last_name"))
+                        .accounts(new ArrayList<>())
+                        .cards(new ArrayList<>())
+                        .build();
+                users.add(user);
+            }
+            Long accountId = resultSet.getLong("account_id");
+            if ((account == null || !(account.getAccountId().equals(accountId))) && !(accountId.equals(0l))) {
+                account = Account.builder()
+                        .accountId(accountId)
+                        .accountNumber(resultSet.getString("account_number"))
+                        .balance(resultSet.getBigDecimal("balance"))
+                        .build();
+                user.getAccounts().add(account);
+            }
+            Long cardId = resultSet.getLong("card_id");
+            if (!(cardId.equals(0l))) {
+                user.getCards().add(Card.builder()
+                        .cardId(resultSet.getLong("card_id"))
+                        .cardNumber(resultSet.getString("card_number"))
+                        .account(account)
+                        .build());
+            }
+        }
+        return users;
+    }
+
     @Override
     public Optional<User> get(Long id) throws SQLException{
         User user = null;
-        Account account = null;
+        List<User> users = new ArrayList<>();
 
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID)) {
-                statement.setLong(1, id);
-                try (ResultSet resultSet = statement.executeQuery()) {
-
-                    while (resultSet.next()) {
-                        if (user == null) {
-                            user = User.builder()
-                                    .userId(resultSet.getLong("user_id"))
-                                    .firstName(resultSet.getString("first_name"))
-                                    .lastName(resultSet.getString("last_name"))
-                                    .accounts(new ArrayList<>())
-                                    .cards(new ArrayList<>())
-                                    .build();
-                        }
-                        Long accountId = resultSet.getLong("account_id");
-                        if ((account == null || !(account.getAccountId().equals(accountId))) && !(accountId.equals(0l))) {
-                            account = Account.builder()
-                                    .accountId(accountId)
-                                    .accountNumber(resultSet.getString("account_number"))
-                                    .balance(resultSet.getBigDecimal("balance"))
-                                    .build();
-                            user.getAccounts().add(account);
-                        }
-                        Long cardId = resultSet.getLong("card_id");
-                        if (!(cardId.equals(0l))) {
-                            user.getCards().add(Card.builder()
-                                    .cardId(resultSet.getLong("card_id"))
-                                    .cardNumber(resultSet.getString("card_number"))
-                                    .account(account)
-                                    .build());
-                        }
-                    }
-                }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID)) {
+            statement.setLong(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                users = rowMapper(resultSet);
             }
         }
-        if (user == null) {
+        if (users.isEmpty()) {
             return Optional.empty();
         } else {
-        return Optional.of(user);
+            return Optional.of(users.get(0));
         }
     }
 
     @Override
     public List<User> getAll() throws SQLException{
         List<User> users = new ArrayList<>();
-        User user = null;
-        Account account = null;
 
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_ALL)) {
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
-                        Long userId = resultSet.getLong("user_id");
-                        if (user == null || !(user.getUserId().equals(userId))) {
-                            user = User.builder()
-                                    .userId(userId)
-                                    .firstName(resultSet.getString("first_name"))
-                                    .lastName(resultSet.getString("last_name"))
-                                    .accounts(new ArrayList<>())
-                                    .cards(new ArrayList<>())
-                                    .build();
-                            users.add(user);
-                        }
-                        Long accountId = resultSet.getLong("account_id");
-                        if ((account == null || !(account.getAccountId().equals(accountId))) && !(accountId.equals(0l))) {
-                            account = Account.builder()
-                                    .accountId(accountId)
-                                    .accountNumber(resultSet.getString("account_number"))
-                                    .balance(resultSet.getBigDecimal("balance"))
-                                    .build();
-                            user.getAccounts().add(account);
-                        }
-                        Long cardId = resultSet.getLong("card_id");
-                        if (!(cardId.equals(0l))) {
-                            user.getCards().add(Card.builder()
-                                    .cardId(resultSet.getLong("card_id"))
-                                    .cardNumber(resultSet.getString("card_number"))
-                                    .account(account)
-                                    .build());
-                        }
-                    }
-                }
-            }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+            users = rowMapper(resultSet);
         }
         return users;
     }
@@ -133,38 +109,35 @@ public class UserRepositoryImp implements DaoRepository<User>{
     @Override
     public void save(User entity) throws SQLException {
 
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, entity.getFirstName());
-                statement.setString(2, entity.getLastName());
-                statement.executeUpdate();
-                try (ResultSet resultset = statement.getGeneratedKeys()) {
-                    resultset.next();
-                    entity.setUserId(resultset.getLong(1));
-                }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, entity.getFirstName());
+            statement.setString(2, entity.getLastName());
+            statement.executeUpdate();
+            try (ResultSet resultset = statement.getGeneratedKeys()) {
+                resultset.next();
+                entity.setUserId(resultset.getLong(1));
             }
         }
     }
 
     @Override
     public void update(User entity) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_USERS)) {
-                statement.setString(1, entity.getFirstName());
-                statement.setString(2, entity.getLastName());
-                statement.setLong(3, entity.getUserId());
-                statement.executeUpdate();
-            }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_USERS)) {
+            statement.setString(1, entity.getFirstName());
+            statement.setString(2, entity.getLastName());
+            statement.setLong(3, entity.getUserId());
+            statement.executeUpdate();
         }
     }
 
     @Override
     public void delete(Long id) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
-                statement.setLong(1, id);
-                statement.executeUpdate();
-            }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
         }
     }
 }

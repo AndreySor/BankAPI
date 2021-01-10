@@ -3,6 +3,8 @@ package com.sber.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sber.models.Card;
 import com.sber.models.User;
+import com.sber.services.NotSavedSubEntityException;
+import com.sber.services.UserService;
 import com.sber.services.UserServiceImp;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -24,29 +26,29 @@ public class UserHandle implements HttpHandler {
         }
     }
 
-    private void cardsHandleResponse(HttpExchange exchange) throws IOException {
+    private void cardsHandleResponse(HttpExchange exchange) {
         ObjectMapper mapper = new ObjectMapper();
-        String cardsJSON = "[{\"status\":\"fail\"}]";
+        String cardsJSON = "[{\"status\":\"FAIL\"}]";
         String userId = exchange.getRequestURI().toString().split("\\?")[1].split("=")[1];
         try {
             User user = User.builder()
                     .userId(Long.parseLong(userId))
                     .build();
-            UserServiceImp userServiceImp = new UserServiceImp();
+            UserService userServiceImp = new UserServiceImp();
             List<Card> cards = userServiceImp.returnListCards(user);
             if (!cards.isEmpty()) {
                 cardsJSON = mapper.writeValueAsString(cards);
                 exchange.sendResponseHeaders(200, cardsJSON.length());
             } else {
-                cardsJSON = "[{\"status\":\"fail\"}]";
                 exchange.sendResponseHeaders(500, cardsJSON.length());
             }
-            OutputStream os = exchange.getResponseBody();
-            os.write(cardsJSON.getBytes(StandardCharsets.UTF_8));
-            os.flush();
-            os.close();
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(cardsJSON.getBytes(StandardCharsets.UTF_8));
+                os.flush();
+            }
         } catch (IOException e) {
             log.log(Level.SEVERE, "Exception: ", e);
+            throw new NotSavedSubEntityException("problems with the cards list");
         }
     }
 }

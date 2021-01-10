@@ -2,7 +2,9 @@ package com.sber.services;
 
 import com.sber.models.Account;
 import com.sber.models.Card;
+import com.sber.repositories.AccountRepository;
 import com.sber.repositories.AccountRepositoryImp;
+import com.sber.repositories.CardRepository;
 import com.sber.repositories.CardRepositoryImp;
 
 import java.sql.SQLException;
@@ -20,22 +22,24 @@ public class CardServiceImp implements CardService{
     @Override
     public String addNewCardOnAccountNumber(Account account) {
         if (account != null && (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
-            AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
+            AccountRepository accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
                 Optional<Account> changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
-                if (changeAccount.isPresent()) {
+                if (changeAccount.isPresent() && account.getOwner() != null &&
+                        changeAccount.get().getOwner().getUserId().equals(account.getOwner().getUserId())) {
                     Generator generator = new Generator();
                     Card newCard = Card.builder()
                             .cardNumber(generator.generateCardNumber())
                             .account(changeAccount.get())
                             .owner(changeAccount.get().getOwner())
                             .build();
-                    CardRepositoryImp cardRepositoryImp = new CardRepositoryImp(ServiceDataSource.getDataSource());
+                    CardRepository cardRepositoryImp = new CardRepositoryImp(ServiceDataSource.getDataSource());
                     cardRepositoryImp.save(newCard);
                     return SUCCESS;
                 }
             } catch (SQLException ex) {
                 log.log(Level.SEVERE, "Exception: ", ex);
+                throw new NotSavedSubEntityException("failed to create a new card");
             }
         }
         return UNSUCCESS;

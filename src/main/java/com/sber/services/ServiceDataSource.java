@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
-import org.h2.jdbcx.JdbcDataSource;
 
 public class ServiceDataSource {
     private static DataSource dataSource;
@@ -13,20 +12,15 @@ public class ServiceDataSource {
         HikariConfig config = new HikariConfig();
         config.setUsername("sa");
         config.setPassword("");
-//        config.setJdbcUrl("jdbc:h2:~/test;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/test/resources/data.sql'");
-        config.setJdbcUrl("jdbc:h2:~/test");
+        config.setJdbcUrl("jdbc:h2:~/test;AUTO_SERVER=TRUE;Mode=Oracle");
+        config.setMaximumPoolSize(10);
 
         dataSource = new HikariDataSource(config);
-//        JdbcDataSource ds = new JdbcDataSource();
-//        ds.setUser("sa");
-//        ds.setPassword("");
-//        ds.setUrl("jdbc:h2:~/test;INIT=runscript from 'src/main/resources/schema.sql'\\;runscript from 'src/main/resources/data.sql'");
-//        dataSource = ds;
     }
 
     private ServiceDataSource() {};
 
-    public static DataSource getDataSource() {
+    public static synchronized DataSource getDataSource() {
         return dataSource;
     }
 }

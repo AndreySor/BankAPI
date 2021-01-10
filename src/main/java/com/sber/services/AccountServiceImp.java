@@ -1,6 +1,7 @@
 package com.sber.services;
 
 import com.sber.models.Account;
+import com.sber.repositories.AccountRepository;
 import com.sber.repositories.AccountRepositoryImp;
 
 import java.math.BigDecimal;
@@ -20,7 +21,7 @@ public class AccountServiceImp implements AccountService{
     public String balanceReplenishment(Account account) {
         if (account != null && account.getBalance().compareTo(new BigDecimal(0)) >= 0 &&
                 (account.getAccountNumber() != null && !account.getAccountNumber().isEmpty())) {
-            AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
+            AccountRepository accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
                 Optional changeAccount = accountRepositoryImp.getByNumber(account.getAccountNumber());
                 if (changeAccount.isPresent()) {
@@ -31,6 +32,7 @@ public class AccountServiceImp implements AccountService{
                 }
             } catch (SQLException ex) {
                 log.log(Level.SEVERE, "Exception: ", ex);
+                throw new NotSavedSubEntityException("failed to top up your balance");
             }
         }
         return UNSUCCESS;
@@ -39,15 +41,15 @@ public class AccountServiceImp implements AccountService{
     @Override
     public Account checkingBalance(Account account) {
         if (account != null && account.getAccountId() != null && account.getAccountId() !=0L) {
-            AccountRepositoryImp accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
+            AccountRepository accountRepositoryImp = new AccountRepositoryImp(ServiceDataSource.getDataSource());
             try {
                 Optional<Account> changeAccount = accountRepositoryImp.get(account.getAccountId());
                 if (changeAccount.isPresent()) {
-                    Account checkBalance = changeAccount.get();
-                    return checkBalance;
+                    return changeAccount.get();
                 }
             } catch (SQLException ex) {
                 log.log(Level.SEVERE, "Exception: ", ex);
+                throw new NotSavedSubEntityException("failed to check balance");
             }
         }
         return null;

@@ -109,8 +109,8 @@ public class Card {
         return "Card{" +
                 "cardId=" + cardId +
                 ", cardNumber='" + cardNumber + '\'' +
-                ", account=" + account +
-                ", owner=" + owner +
+                ", account=" + account.getAccountNumber() +
+                ", owner=" + owner.getFirstName() + " " + owner.getLastName().charAt(0) + "." +
                 '}';
     }
 }

@@ -1,6 +1,7 @@
 package com.sber.repositories;
 
 import com.sber.models.Account;
+import com.sber.models.Card;
 import com.sber.models.User;
 
 import javax.sql.DataSource;
@@ -36,31 +37,35 @@ public class AccountRepositoryImp implements AccountRepository {
     public AccountRepositoryImp(DataSource dataSource){
         this.dataSource = dataSource;
     }
-    
+
+    private Account rowMapper(ResultSet resultSet) throws SQLException {
+
+        Long accountId = resultSet.getLong("account_id");
+        String accountNumber = resultSet.getString("account_number");
+        BigDecimal balance = resultSet.getBigDecimal("balance");
+        Long userId = resultSet.getLong("user_id");
+        String firstName = resultSet.getString("first_name");
+        String lastName = resultSet.getString("last_name");
+        return (Account.builder()
+                .accountId(accountId)
+                .accountNumber(accountNumber)
+                .balance(balance)
+                .owner(User.builder()
+                        .userId(userId)
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .build())
+                .build());
+    }
+
     @Override
     public Optional<Account> get(Long id) throws SQLException{
-        try (Connection connection = dataSource.getConnection()){
-            try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID);){
-                statement.setLong(1, id);
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        Long accountId = resultSet.getLong("account_id");
-                        String accountNumber = resultSet.getString("account_number");
-                        BigDecimal balance = resultSet.getBigDecimal("balance");
-                        Long userId = resultSet.getLong("user_id");
-                        String firstName = resultSet.getString("first_name");
-                        String lastName = resultSet.getString("last_name");
-                        return Optional.of(Account.builder()
-                                .accountId(accountId)
-                                .accountNumber(accountNumber)
-                                .balance(balance)
-                                .owner(User.builder()
-                                        .userId(userId)
-                                        .firstName(firstName)
-                                        .lastName(lastName)
-                                        .build())
-                                .build());
-                    }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ID)){
+            statement.setLong(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(rowMapper(resultSet));
                 }
             }
         }
@@ -71,28 +76,11 @@ public class AccountRepositoryImp implements AccountRepository {
     public List<Account> getAll() throws SQLException {
         List<Account> accounts = new ArrayList<>();
 
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_ALL)){
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
-                        Long accountId = resultSet.getLong("account_id");
-                        String accountNumber = resultSet.getString("account_number");
-                        BigDecimal balance = resultSet.getBigDecimal("balance");
-                        Long userId = resultSet.getLong("user_id");
-                        String firstName = resultSet.getString("first_name");
-                        String lastName = resultSet.getString("last_name");
-                        accounts.add(Account.builder()
-                                .accountId(accountId)
-                                .accountNumber(accountNumber)
-                                .balance(balance)
-                                .owner(User.builder()
-                                        .userId(userId)
-                                        .firstName(firstName)
-                                        .lastName(lastName)
-                                        .build())
-                                .build());
-                    }
-                }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                accounts.add(rowMapper(resultSet));
             }
         }
         return accounts;
@@ -100,67 +88,48 @@ public class AccountRepositoryImp implements AccountRepository {
 
     @Override
     public void save(Account entity) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, entity.getAccountNumber());
-                statement.setBigDecimal(2, entity.getBalance());
-                statement.setLong(3, entity.getOwner().getUserId());
-                statement.executeUpdate();
-                try (ResultSet resultset = statement.getGeneratedKeys()) {
-                    resultset.next();
-                    entity.setAccountId(resultset.getLong(1));
-                }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_NEW_STRING, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, entity.getAccountNumber());
+            statement.setBigDecimal(2, entity.getBalance());
+            statement.setLong(3, entity.getOwner().getUserId());
+            statement.executeUpdate();
+            try (ResultSet resultset = statement.getGeneratedKeys()) {
+                resultset.next();
+                entity.setAccountId(resultset.getLong(1));
             }
         }
     }
 
     @Override
     public void update(Account entity) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_CARDS);) {
-                statement.setString(1, entity.getAccountNumber());
-                statement.setBigDecimal(2, entity.getBalance());
-                statement.setLong(3, entity.getOwner().getUserId());
-                statement.setLong(4, entity.getAccountId());
-                statement.executeUpdate();
-            }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_CARDS)) {
+            statement.setString(1, entity.getAccountNumber());
+            statement.setBigDecimal(2, entity.getBalance());
+            statement.setLong(3, entity.getOwner().getUserId());
+            statement.setLong(4, entity.getAccountId());
+            statement.executeUpdate();
         }
     }
 
     @Override
     public void delete(Long id) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
-                statement.setLong(1, id);
-                statement.executeUpdate();
-            }
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
         }
     }
 
     @Override
     public Optional<Account> getByNumber(String accountNumber) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ACCOUNT_NUMBER)) {
-                statement.setString(1, accountNumber);
-                ResultSet resultSet = statement.executeQuery();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_GET_BY_ACCOUNT_NUMBER)) {
+            statement.setString(1, accountNumber);
+            try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    Long accountId = resultSet.getLong("account_id");
-                    BigDecimal balance = resultSet.getBigDecimal("balance");
-                    Long userId = resultSet.getLong("user_id");
-                    String firstName = resultSet.getString("first_name");
-                    String lastName = resultSet.getString("last_name");
-                    connection.close();
-
-                    return Optional.of(Account.builder()
-                            .accountId(accountId)
-                            .accountNumber(accountNumber)
-                            .balance(balance)
-                            .owner(User.builder()
-                                    .userId(userId)
-                                    .firstName(firstName)
-                                    .lastName(lastName)
-                                    .build())
-                            .build());
+                    return Optional.of(rowMapper(resultSet));
                 }
             }
         }
